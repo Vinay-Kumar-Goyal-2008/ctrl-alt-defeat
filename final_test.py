@@ -1,3 +1,4 @@
+import asyncio
 import sounddevice as sd
 import soundfile as sf
 import tempfile
@@ -5,6 +6,7 @@ import os
 
 from sst import speech_to_english
 from graph import build_graph
+from tts_handler import text_to_speech
 
 
 # ============================================================
@@ -41,6 +43,9 @@ PRODUCT = {
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 5  # seconds
 
+# TTS output configuration
+TTS_OUTPUT_DIR = "audio"
+
 
 # ============================================================
 # BUILD LANGGRAPH
@@ -52,10 +57,8 @@ app = build_graph()
 # ============================================================
 # CONVERSATION STATE
 #
-# FIX: cold_streak is now tracked exactly like hot_streak,
-# since the graph has no checkpointer -- all cross-turn state
-# must be persisted here in the orchestrator and passed back
-# into every app.invoke(...) call.
+# cold_streak is tracked exactly like hot_streak because
+# the graph has no checkpointer.
 # ============================================================
 
 conversation = []
@@ -75,11 +78,14 @@ def print_header():
     print("=" * 70)
 
     print("Speak naturally into your microphone.")
+
     print("The system will:")
     print("  1. Record your voice")
-    print("  2. Convert speech to English")
-    print("  3. Send the English text to the AI agent")
-    print("  4. Generate the agent response")
+    print("  2. Detect the spoken language")
+    print("  3. Convert speech to English")
+    print("  4. Send the English text to the AI agent")
+    print("  5. Generate the agent response")
+    print("  6. Convert the agent response back to speech")
 
     print("\nSpeak 'exit', 'quit', or 'bye' to end the call.")
 
@@ -153,6 +159,7 @@ def print_action(result):
         )
 
         if scheduled_time:
+
             print(
                 f"Call scheduled for: "
                 f"{scheduled_time}"
@@ -182,11 +189,8 @@ def print_action(result):
 
     elif intent.interest == "cold":
 
-        # FIX: this used to unconditionally print
-        # "Call termination triggered." on EVERY cold turn,
-        # regardless of the actual streak/call_active state.
-        # Now it accurately reflects what the graph decided.
         print("\n[ACTION]")
+
         print(
             f"Cold interest detected "
             f"(cold streak: {cold_streak_value}/3)."
@@ -194,8 +198,12 @@ def print_action(result):
 
         if not call_active_value:
             print("Call termination triggered.")
+
         else:
-            print("Continuing conversation (streak below threshold).")
+            print(
+                "Continuing conversation "
+                "(streak below threshold)."
+            )
 
 
 def print_whatsapp(result):
@@ -209,7 +217,9 @@ def print_whatsapp(result):
 
     print("\n[WHATSAPP]")
     print("-" * 50)
+
     print(message)
+
     print("-" * 50)
 
 
@@ -296,6 +306,11 @@ def record_audio():
 
 # ============================================================
 # SPEECH → ENGLISH
+#
+# IMPORTANT:
+# This now returns BOTH:
+#   1. English text
+#   2. Detected language
 # ============================================================
 
 def speech_to_english_from_microphone():
@@ -339,7 +354,7 @@ def speech_to_english_from_microphone():
 
         language = result.get(
             "language",
-            "unknown"
+            "en"
         )
 
         original_text = result.get(
@@ -354,19 +369,30 @@ def speech_to_english_from_microphone():
 
         print("\n[SPEECH]")
         print("-" * 50)
-        print(f"Detected language : {language}")
-        print(f"Original speech   : {original_text}")
-        print(f"English           : {english_text}")
+
+        print(
+            f"Detected language : {language}"
+        )
+
+        print(
+            f"Original speech   : {original_text}"
+        )
+
+        print(
+            f"English           : {english_text}"
+        )
+
         print("-" * 50)
 
-        return english_text
+        # Return BOTH values
+        return english_text, language
 
     except Exception as e:
 
         print("\n[SPEECH ERROR]")
         print(e)
 
-        return ""
+        return "", "en"
 
     finally:
 
@@ -375,10 +401,97 @@ def speech_to_english_from_microphone():
 
 
 # ============================================================
+# TEXT → SPEECH
+# ============================================================
+#
+# This function takes:
+#
+#   final agent response
+#             +
+#   detected language
+#
+# and sends them to your Rime TTS function.
+#
+# ============================================================
+
+def generate_agent_audio(
+    response: str,
+    language: str
+):
+
+    if not response:
+        print("\n[TTS] No response to synthesize.")
+        return None
+
+    try:
+
+        # ----------------------------------------------------
+        # Create audio directory
+        # ----------------------------------------------------
+
+        os.makedirs(
+            TTS_OUTPUT_DIR,
+            exist_ok=True
+        )
+
+        # ----------------------------------------------------
+        # Generate a unique filename
+        # ----------------------------------------------------
+
+        output_path = os.path.join(
+            TTS_OUTPUT_DIR,
+            "agent_response.wav"
+        )
+
+        print("\n[TTS]")
+        print("-" * 50)
+
+        print(
+            f"Language : {language}"
+        )
+
+        print(
+            f"Text     : {response}"
+        )
+
+        print("Generating audio...")
+
+        # ----------------------------------------------------
+        # Call your async Rime TTS function
+        # ----------------------------------------------------
+
+        audio_path = asyncio.run(
+            text_to_speech(
+                text=response,
+                language=language,
+                output_path=output_path
+            )
+        )
+
+        print(
+            f"Audio saved: {audio_path}"
+        )
+
+        print("-" * 50)
+
+        return audio_path
+
+    except Exception as e:
+
+        print("\n[TTS ERROR]")
+        print(e)
+
+        return None
+
+
+# ============================================================
 # RUN LANGGRAPH AGENT
 # ============================================================
 
-def run_agent(user_message):
+def run_agent(
+    user_message,
+    detected_language
+):
 
     global conversation
     global hot_streak
@@ -389,17 +502,6 @@ def run_agent(user_message):
 
     # --------------------------------------------------------
     # Invoke LangGraph
-    #
-    # FIX: do NOT manually append the user message to
-    # `conversation` here. `analyze_intent` in graph.py already
-    # appends it via the `conversation` reducer -- appending it
-    # here too caused every user turn to be duplicated in
-    # history, and it also fed the (not-yet-recorded) current
-    # message into the "Previous conversation" text.
-    #
-    # FIX: cold_streak is now passed in just like hot_streak so
-    # the 3-strike cold logic can actually accumulate turn to
-    # turn.
     # --------------------------------------------------------
 
     try:
@@ -417,7 +519,6 @@ def run_agent(user_message):
             "cold_streak": cold_streak,
 
             "call_active": True
-
         })
 
     except Exception as e:
@@ -442,12 +543,7 @@ def run_agent(user_message):
     )
 
     # --------------------------------------------------------
-    # FIX: sync the local conversation list from the graph's
-    # returned state instead of hand-appending to it. The graph
-    # is the single source of truth for what got added (user
-    # turn + whichever assistant turn the active branch
-    # produced), so this is the only place messages should be
-    # added.
+    # Sync conversation
     # --------------------------------------------------------
 
     conversation = result.get(
@@ -468,25 +564,32 @@ def run_agent(user_message):
     print_action(result)
 
     # --------------------------------------------------------
-    # Display agent response
+    # Get final agent response
     #
-    # FIX: `result["dialogue_response"]`/`final_response` are
-    # plain strings (from `response.content` in graph.py), not
-    # dicts -- `response['text']` was indexing a string with a
-    # string key, which is exactly what raised
-    # "string indices must be integers, not 'str'".
-    #
-    # FIX: prefer `final_response` (the judged/authoritative
-    # answer for the normal dialogue+marketing path) and fall
-    # back to `dialogue_response` for branches (cold) that only
-    # set that field.
+    # Prefer final_response.
+    # Fall back to dialogue_response.
     # --------------------------------------------------------
 
-    response = result.get("final_response") or result.get("dialogue_response")
+    response = (
+        result.get("final_response")
+        or result.get("dialogue_response")
+    )
 
     if response:
+
         print("\nAgent:")
         print(response)
+
+        # ====================================================
+        # NEW:
+        # Convert the agent's response to speech
+        # using the ORIGINAL detected language.
+        # ====================================================
+
+        generate_agent_audio(
+            response=response,
+            language=detected_language
+        )
 
     # --------------------------------------------------------
     # Display WhatsApp
@@ -550,9 +653,16 @@ def main():
             # =================================================
             # STEP 1
             # Record + translate speech
+            #
+            # Now receives:
+            #
+            # english_text
+            # detected_language
             # =================================================
 
-            english_text = speech_to_english_from_microphone()
+            english_text, detected_language = (
+                speech_to_english_from_microphone()
+            )
 
             # -------------------------------------------------
             # No speech detected
@@ -560,7 +670,10 @@ def main():
 
             if not english_text.strip():
 
-                print("\nNo speech detected. Try again.")
+                print(
+                    "\nNo speech detected. "
+                    "Try again."
+                )
 
                 continue
 
@@ -570,11 +683,13 @@ def main():
             # =================================================
 
             if english_text.lower().strip() in {
+
                 "exit",
                 "quit",
                 "bye",
                 "end the call",
                 "end call"
+
             }:
 
                 print("\nEnding call...")
@@ -586,9 +701,16 @@ def main():
             # =================================================
             # STEP 3
             # Send English text to LangGraph
+            #
+            # Also pass detected language so that the
+            # agent response can be converted back to the
+            # user's original language.
             # =================================================
 
-            run_agent(english_text)
+            run_agent(
+                user_message=english_text,
+                detected_language=detected_language
+            )
 
             # =================================================
             # STEP 4
@@ -596,7 +718,6 @@ def main():
             # =================================================
 
             if not call_active:
-
                 break
 
         except KeyboardInterrupt:
@@ -618,4 +739,5 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
+
     main()
