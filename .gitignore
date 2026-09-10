@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual env
+venv/
+.env
+
+# Testing
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Audio files
+*.wav
+*.mp3
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

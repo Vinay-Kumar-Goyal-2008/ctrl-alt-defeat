@@ -21,9 +21,12 @@ class MarketingResponse(BaseModel):
 # ============================================================
 
 def create_marketing_agent():
+    import os
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "dummy_api_key_for_startup"
 
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3-flash-preview",
+        model="gemini-2.0-flash",
+        google_api_key=api_key,
         temperature=0.4,
     )
 

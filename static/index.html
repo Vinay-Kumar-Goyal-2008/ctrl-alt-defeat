@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales Agent Studio | Apple Intelligence & Linear Workspace</title>
+    <!-- Modern Typography: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ============================================================ -->
+        <!-- ARC-INSPIRED FLOATING FROSTED GLASS SIDEBAR                  -->
+        <!-- ============================================================ -->
+        <aside class="sidebar-glass">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <span class="logo-sparkle">✦</span>
+                </div>
+                <div class="brand-info">
+                    <span class="brand-title">SALES COPILOT</span>
+                    <span class="brand-subtitle">Voice Intelligence v2.0</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="studio">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    <span>Voice Studio</span>
+                    <span class="badge-live">LIVE</span>
+                </button>
+                <button class="nav-item" data-tab="pipeline">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    <span>Lead Pipeline</span>
+                </button>
+                <button class="nav-item" data-tab="product">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    <span>Knowledge Base</span>
+                </button>
+                <button class="nav-item" data-tab="dispatches">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    <span>WhatsApp Logs</span>
+                </button>
+                <button class="nav-item" data-tab="architecture">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    <span>Graph Workflow</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="session-card">
+                    <div class="session-header">
+                        <span class="session-dot active"></span>
+                        <span class="session-id-label">Session: <strong id="sidebarSessionId">Init...</strong></span>
+                    </div>
+                    <button id="btnNewSession" class="btn-secondary-glass">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        New Sales Call
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ============================================================ -->
+        <!-- MAIN WORKSPACE                                               -->
+        <!-- ============================================================ -->
+        <main class="main-workspace">
+
+            <!-- TOP STATUS BAR -->
+            <header class="top-bar-glass">
+                <div class="bar-left">
+                    <span class="status-pill status-active" id="callStatePill">
+                        <span class="pulse-dot"></span>
+                        <span id="callStateText">LIVE CALL IN PROGRESS</span>
+                    </span>
+                    <span class="lang-pill" id="langPill">
+                        🌐 English (US)
+                    </span>
+                </div>
+
+                <div class="bar-center">
+                    <div class="audio-toggle-container">
+                        <label class="switch-glass">
+                            <input type="checkbox" id="toggleAutoTTS" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="switch-label">Auto Voice Playback</span>
+                    </div>
+                </div>
+
+                <div class="bar-right">
+                    <div class="lead-header-badge lead-warm" id="topInterestBadge">
+                        <span class="badge-icon">🌡️</span>
+                        <span id="topInterestText">WARM LEAD</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TAB CONTENT: STUDIO -->
+            <section class="tab-content active" id="tab-studio">
+                
+                <!-- HERO APPLE INTELLIGENCE VOICE INTERACTION CENTER -->
+                <div class="voice-hero-card">
+                    <div class="voice-orb-wrapper">
+                        <!-- Multi-layer glowing aura rings -->
+                        <div class="orb-aura aura-1"></div>
+                        <div class="orb-aura aura-2"></div>
+                        <div class="orb-aura aura-3"></div>
+
+                        <button id="micOrbBtn" class="mic-orb idle" title="Click or Hold to Speak">
+                            <div class="mic-icon-wrap">
+                                <svg class="mic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    <line x1="12" y1="19" x2="12" y2="22"/>
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="voice-status-info">
+                        <div class="status-title" id="voiceStateTitle">Tap Microphone to Speak</div>
+                        <div class="status-subtitle" id="voiceStateSubtitle">Continuous Indian & Global Language Voice Detection Active</div>
+                    </div>
+
+                    <!-- Waveform Canvas -->
+                    <canvas id="waveformCanvas" class="waveform-canvas" width="400" height="40"></canvas>
+                </div>
+
+                <!-- CONVERSATIONAL STREAM -->
+                <div class="conversation-feed-card" id="conversationFeed">
+                    <div class="feed-welcome">
+                        <div class="welcome-sparkle">✦</div>
+                        <h3>AI Sales Assistant Ready</h3>
+                        <p>Speak into your microphone or type a question to initiate real-time sales intelligence, lead qualification, and multi-agent dialogue.</p>
+                    </div>
+                </div>
+
+                <!-- DUAL INPUT PROMPT BAR -->
+                <div class="prompt-bar-container">
+                    <div class="prompt-bar-glass">
+                        <button id="inputMicToggle" class="prompt-btn-mic" title="Toggle Mic">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                        </button>
+                        <input type="text" id="textPromptInput" placeholder="Ask about features, pricing, scheduling, or objections..." autocomplete="off">
+                        <button id="btnSendPrompt" class="prompt-btn-send">
+                            <span>Send</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB CONTENT: PIPELINE & SESSIONS -->
+            <section class="tab-content" id="tab-pipeline">
+                <div class="panel-header">
+                    <h2>Lead Pipeline & Session History</h2>
+                    <p>Track all active and past voice sales conversations, interest scores, and scheduled call slots.</p>
+                </div>
+                <div class="pipeline-grid" id="pipelineSessionsGrid">
+                    <!-- Session cards will render dynamically -->
+                </div>
+            </section>
+
+            <!-- TAB CONTENT: KNOWLEDGE BASE -->
+            <section class="tab-content" id="tab-product">
+                <div class="panel-header">
+                    <h2>Product Knowledge Base</h2>
+                    <p>Dynamic product context consumed by the LangGraph agents during live conversations.</p>
+                </div>
+                <div class="kb-form-glass">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" id="kbProductName" value="AI Sales Copilot">
+                    </div>
+                    <div class="form-group">
+                        <label>Description & Positioning</label>
+                        <textarea id="kbProductDesc" rows="3">An AI-powered sales assistant that analyzes conversations, identifies customer intent, automatically follows up through WhatsApp, schedules calls, and generates post-call summaries.</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Key Features (comma-separated)</label>
+                            <textarea id="kbFeatures" rows="3">Real-time intent detection, Customer interest scoring, Automated WhatsApp follow-up, Call scheduling, Post-call summaries</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Customer Benefits (comma-separated)</label>
+                            <textarea id="kbBenefits" rows="3">Higher sales conversion, Faster follow-up, Reduced manual work, Better customer qualification</textarea>
+                        </div>
+                    </div>
+                    <button id="btnSaveKB" class="btn-primary-glass">Save Knowledge Base</button>
+                </div>
+            </section>
+
+            <!-- TAB CONTENT: WHATSAPP DISPATCHES -->
+            <section class="tab-content" id="tab-dispatches">
+                <div class="panel-header">
+                    <h2>WhatsApp Automated Dispatches</h2>
+                    <p>Live audit log of all automated customer follow-ups and post-call summaries dispatched via WhatsApp.</p>
+                </div>
+                <div class="dispatches-list" id="whatsappLogsContainer">
+                    <!-- Dispatches will render dynamically -->
+                </div>
+            </section>
+
+            <!-- TAB CONTENT: GRAPH ARCHITECTURE -->
+            <section class="tab-content" id="tab-architecture">
+                <div class="panel-header">
+                    <h2>LangGraph Multi-Agent Architecture</h2>
+                    <p>Real-time graph visualization showing how customer speech routes through intent analysis, fan-out generation, judge evaluation, and automated tool execution.</p>
+                </div>
+                <div class="architecture-diagram-card">
+                    <div class="node-flow">
+                        <div class="flow-step" id="arch-analyze">
+                            <div class="step-badge">NODE 1</div>
+                            <h4>🧠 Intent Analysis</h4>
+                            <p>Gemini Structured Intent & Interest Scoring</p>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-branch">
+                            <div class="flow-step" id="arch-dialogue">
+                                <div class="step-badge">FAN-OUT A</div>
+                                <h4>💬 Dialogue Agent</h4>
+                                <p>Conversational Sales Response</p>
+                            </div>
+                            <div class="flow-step" id="arch-marketing">
+                                <div class="step-badge">FAN-OUT B</div>
+                                <h4>📣 Marketing Agent</h4>
+                                <p>Positioning & Value Response</p>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-step" id="arch-judge">
+                            <div class="step-badge">FAN-IN</div>
+                            <h4>⚖️ Response Judge</h4>
+                            <p>Evaluates & Synthesizes Final Output</p>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-step" id="arch-actions">
+                            <div class="step-badge">TOOLS</div>
+                            <h4>📲 WhatsApp / Schedule / Summary</h4>
+                            <p>Triggers Automated Sales Actions</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ============================================================ -->
+        <!-- LINEAR-INSPIRED RIGHT INTELLIGENCE PANEL                    -->
+        <!-- ============================================================ -->
+        <aside class="panel-intelligence">
+
+            <!-- INTENT ANALYSIS METRICS -->
+            <div class="intel-card">
+                <div class="intel-card-header">
+                    <h3>Live Intent Analysis</h3>
+                    <span class="intel-dot pulse"></span>
+                </div>
+
+                <div class="intent-score-box">
+                    <div class="score-label">Interest Level</div>
+                    <div class="interest-badge-large badge-warm" id="intelInterestBadge">WARM</div>
+                    <div class="confidence-bar-wrap">
+                        <div class="confidence-label">Confidence: <span id="intelConfidenceVal">0.00</span></div>
+                        <div class="confidence-track">
+                            <div class="confidence-fill" id="intelConfidenceFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="intent-detail-item">
+                    <span class="detail-label">Customer Intention</span>
+                    <span class="detail-val" id="intelIntentionVal">Awaiting conversation...</span>
+                </div>
+
+                <div class="streaks-row">
+                    <div class="streak-box">
+                        <span class="streak-num" id="intelHotStreak">0</span>
+                        <span class="streak-label">🔥 Hot Streak</span>
+                    </div>
+                    <div class="streak-box">
+                        <span class="streak-num" id="intelColdStreak">0</span>
+                        <span class="streak-label">❄️ Cold Streak</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE GRAPH PIPELINE MONITOR -->
+            <div class="intel-card">
+                <div class="intel-card-header">
+                    <h3>LangGraph Pipeline Monitor</h3>
+                </div>
+                <div class="pipeline-tracker">
+                    <div class="tracker-step" id="step-analyze">
+                        <span class="step-icon">1</span>
+                        <span class="step-name">Intent Classifier</span>
+                        <span class="step-status">Idle</span>
+                    </div>
+                    <div class="tracker-step" id="step-agents">
+                        <span class="step-icon">2</span>
+                        <span class="step-name">Dialogue & Marketing</span>
+                        <span class="step-status">Idle</span>
+                    </div>
+                    <div class="tracker-step" id="step-judge">
+                        <span class="step-icon">3</span>
+                        <span class="step-name">Response Judge</span>
+                        <span class="step-status">Idle</span>
+                    </div>
+                    <div class="tracker-step" id="step-actions">
+                        <span class="step-icon">4</span>
+                        <span class="step-name">Automated Actions</span>
+                        <span class="step-status">Idle</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUTOMATED ACTIONS DISPATCH CARD -->
+            <div class="intel-card">
+                <div class="intel-card-header">
+                    <h3>Active Actions</h3>
+                </div>
+                <div class="actions-card-content">
+                    <div class="action-item" id="actionScheduledItem">
+                        <div class="action-icon">📅</div>
+                        <div class="action-text">
+                            <span class="action-title">Calendar Booking</span>
+                            <span class="action-sub" id="actionScheduledVal">No call scheduled</span>
+                        </div>
+                    </div>
+                    <div class="action-item" id="actionWhatsAppItem">
+                        <div class="action-icon">📲</div>
+                        <div class="action-text">
+                            <span class="action-title">WhatsApp Dispatch</span>
+                            <span class="action-sub" id="actionWhatsAppVal">No message queued</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POST-CALL SUMMARY CARD (Shows when call ends) -->
+            <div class="intel-card postcall-card hidden" id="postCallSummaryCard">
+                <div class="intel-card-header">
+                    <h3>📝 Post-Call Intelligence Summary</h3>
+                </div>
+                <div class="postcall-body">
+                    <div class="postcall-section">
+                        <label>Executive Summary</label>
+                        <p id="postSummaryText">Analyzing post-call data...</p>
+                    </div>
+                    <div class="postcall-section">
+                        <label>Product Interest & Intent</label>
+                        <p id="postProductInterest">...</p>
+                    </div>
+                    <div class="postcall-section">
+                        <label>Objections Raised</label>
+                        <p id="postObjections">None</p>
+                    </div>
+                    <div class="postcall-section">
+                        <label>Recommended Follow-up</label>
+                        <p id="postFollowUp">...</p>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

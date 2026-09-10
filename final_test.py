@@ -1,5 +1,7 @@
 import asyncio
+# pyrefly: ignore [missing-import]
 import sounddevice as sd
+# pyrefly: ignore [missing-import]
 import soundfile as sf
 import tempfile
 import os
