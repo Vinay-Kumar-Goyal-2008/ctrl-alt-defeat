@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import random
 
-# pyrefly: ignore [missing-import]
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from schemas import ScheduleResult
@@ -10,13 +9,10 @@ from schemas import ScheduleResult
 class SchedulerAgent:
 
     def __init__(self):
-        import os
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "dummy_api_key_for_startup"
 
         # Gemini LLM
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=api_key,
+            model="gemini-3-flash-preview",
             temperature=0
         )
 
