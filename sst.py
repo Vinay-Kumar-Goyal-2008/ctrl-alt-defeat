@@ -55,7 +55,6 @@ asr_model = AutoModel.from_pretrained(
     trust_remote_code=True,
     token=HF_TOKEN,
 )
-print(HF_TOKEN)
 asr_model = asr_model.to(DEVICE)
 asr_model.eval()
 
