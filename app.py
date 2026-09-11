@@ -11,7 +11,7 @@ from graph import build_graph
 from tts_handler import text_to_speech
 from productknowledge import business as PRODUCT
 
-
+print(1)
 # ============================================================
 # CONFIGURATION
 # ============================================================
