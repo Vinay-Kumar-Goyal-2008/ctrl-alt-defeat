@@ -25,9 +25,8 @@ load_dotenv()
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+os.environ["HF_TOKEN"] = st.secrets["HF_TOKEN"]
 HF_TOKEN = os.getenv("HF_TOKEN")
-if not HF_TOKEN:
-    HF_TOKEN = st.secrets.get("HF_TOKEN")
 
 if HF_TOKEN is None:
     print("Warning: HF_TOKEN environment variable is not set.")
