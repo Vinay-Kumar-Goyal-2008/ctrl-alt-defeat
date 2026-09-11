@@ -6,7 +6,7 @@ os.environ["HF_HUB_DISABLE_SYMLINKS"] = "1"
 import torch
 import torchaudio
 import whisper
-
+import streamlit as st
 from transformers import (
     AutoModel,
     AutoModelForSeq2SeqLM,
@@ -26,6 +26,8 @@ load_dotenv()
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
+if not HF_TOKEN:
+    HF_TOKEN = st.secrets.get("HF_TOKEN")
 
 if HF_TOKEN is None:
     print("Warning: HF_TOKEN environment variable is not set.")

@@ -5,16 +5,18 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from schemas import ScheduleResult
 
-
+import streamlit as st
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 class SchedulerAgent:
 
     def __init__(self):
 
         # Gemini LLM
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-3-flash-preview",
-            temperature=0
-        )
+        model="gemini-3-flash-preview",
+        temperature=0.4,
+        google_api_key=GOOGLE_API_KEY
+    )
 
         # Structured output using your Pydantic schema
         self.structured_llm = self.llm.with_structured_output(

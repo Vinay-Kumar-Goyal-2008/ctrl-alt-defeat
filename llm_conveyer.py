@@ -3,8 +3,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 
 from productknowledge import business
-
-
+import streamlit as st
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 # ============================================================
 # RESPONSE SCHEMA
 # ============================================================
@@ -25,6 +25,7 @@ def create_marketing_agent():
     llm = ChatGoogleGenerativeAI(
         model="gemini-3-flash-preview",
         temperature=0.4,
+        google_api_key=GOOGLE_API_KEY
     )
 
     structured_llm = llm.with_structured_output(

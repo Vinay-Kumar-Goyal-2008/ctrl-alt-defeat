@@ -8,7 +8,7 @@ from schemas import (
     IntentAnalysis,
     PostCallSummary
 )
-
+import streamlit as st
 from prompts import (
     INTENT_PROMPT,
     BASE_DIALOGUE_PROMPT,
@@ -66,9 +66,10 @@ class ConversationState(TypedDict, total=False):
 # ============================================================
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-3-flash-preview",
-    temperature=0.3
-)
+        model="gemini-3-flash-preview",
+        temperature=0.4,
+        google_api_key=GOOGLE_API_KEY
+    )
 
 
 # ============================================================
