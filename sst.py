@@ -30,7 +30,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 if HF_TOKEN is None:
     print("Warning: HF_TOKEN environment variable is not set.")
-
+print(HF_TOKEN)
 
 # ============================================================
 # LOAD MODELS ONCE
