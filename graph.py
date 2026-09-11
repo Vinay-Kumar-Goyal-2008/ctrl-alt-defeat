@@ -27,7 +27,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from llm_conveyer import marketing_agent
 
-
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 # ============================================================
 # STATE
 # ============================================================

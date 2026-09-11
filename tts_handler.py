@@ -6,28 +6,24 @@ import os
 import wave
 
 import websockets
-from dotenv import load_dotenv
-
-
-# ============================================================
-# LOAD ENVIRONMENT VARIABLES
-# ============================================================
-
-load_dotenv()
-
+import streamlit as st
 
 # ============================================================
 # RIME CONFIGURATION
 # ============================================================
 
-RIME_API_KEY = os.getenv("RIME_API_KEY")
-RIME_TTS_WS_URL = os.getenv(
+RIME_API_KEY = st.secrets.get("RIME_API_KEY")
+
+RIME_TTS_WS_URL = st.secrets.get(
     "RIME_TTS_WS_URL",
     "wss://users-ws.rime.ai/ws3"
 )
-RIME_SPEAKER = os.getenv("RIME_SPEAKER")
-RIME_MODEL_ID = os.getenv("RIME_MODEL_ID")
-RIME_AUDIO_FORMAT = os.getenv(
+
+RIME_SPEAKER = st.secrets.get("RIME_SPEAKER")
+
+RIME_MODEL_ID = st.secrets.get("RIME_MODEL_ID")
+
+RIME_AUDIO_FORMAT = st.secrets.get(
     "RIME_AUDIO_FORMAT",
     "pcm"
 )
