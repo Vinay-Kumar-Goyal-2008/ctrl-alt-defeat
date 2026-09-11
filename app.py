@@ -1,17 +1,32 @@
 import asyncio
+print("1")
+
 import os
+print("2")
+
 import tempfile
+print("3")
+
 import time
+print("4")
 
 import streamlit as st
+print("5")
+
 import soundfile as sf
+print("6")
 
 from sst import speech_to_english
-from graph import build_graph
-from tts_handler import text_to_speech
-from productknowledge import business as PRODUCT
+print("7")
 
-print(1)
+from graph import build_graph
+print("8")
+
+from tts_handler import text_to_speech
+print("9")
+
+from productknowledge import business as PRODUCT
+print("10")
 # ============================================================
 # CONFIGURATION
 # ============================================================
