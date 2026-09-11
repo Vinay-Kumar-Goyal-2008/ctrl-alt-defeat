@@ -7,33 +7,7 @@ import os
 from sst import speech_to_english
 from graph import build_graph
 from tts_handler import text_to_speech
-
-
-# ============================================================
-# PRODUCT
-# ============================================================
-
-PRODUCT = {
-    "name": "AI Sales Copilot",
-    "description": (
-        "An AI-powered sales assistant that analyzes conversations, "
-        "identifies customer intent, automatically follows up through "
-        "WhatsApp, schedules calls, and generates post-call summaries."
-    ),
-    "features": [
-        "Real-time intent detection",
-        "Customer interest scoring",
-        "Automated WhatsApp follow-up",
-        "Call scheduling",
-        "Post-call summaries"
-    ],
-    "benefits": [
-        "Higher sales conversion",
-        "Faster follow-up",
-        "Reduced manual work",
-        "Better customer qualification"
-    ]
-}
+from productknowledge import business as PRODUCT
 
 
 # ============================================================
