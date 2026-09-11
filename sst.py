@@ -1,12 +1,17 @@
 import os
 
-# Disable Hugging Face symlinks on Windows
+# ============================================================
+# HUGGING FACE CONFIGURATION
+# ============================================================
+
+# Useful mainly for Windows/local development.
 os.environ["HF_HUB_DISABLE_SYMLINKS"] = "1"
 
 import torch
 import torchaudio
 import whisper
 import streamlit as st
+
 from transformers import (
     AutoModel,
     AutoModelForSeq2SeqLM,
@@ -25,86 +30,24 @@ load_dotenv()
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-os.environ["HF_TOKEN"] = st.secrets["HF_TOKEN"]
-HF_TOKEN = os.getenv("HF_TOKEN")
+# ------------------------------------------------------------
+# HF TOKEN
+# ------------------------------------------------------------
+
+try:
+    HF_TOKEN = st.secrets["HF_TOKEN"]
+except Exception:
+    HF_TOKEN = os.getenv("HF_TOKEN")
 
 if HF_TOKEN is None:
-    print("Warning: HF_TOKEN environment variable is not set.")
-
-# ============================================================
-# LOAD MODELS ONCE
-# ============================================================
-
-print("Loading models...")
-
-# ------------------------------------------------------------
-# Whisper
-# Used ONLY for language detection + English transcription
-# ------------------------------------------------------------
-
-language_detector = whisper.load_model("tiny", device=DEVICE)
-
-
-# ------------------------------------------------------------
-# AI4Bharat IndicConformer
-# Speech -> Original Indian Language Text
-# ------------------------------------------------------------
-
-asr_model = AutoModel.from_pretrained(
-    "ai4bharat/indic-conformer-600m-multilingual",
-    trust_remote_code=True,
-    token=HF_TOKEN,
-)
-asr_model = asr_model.to(DEVICE)
-asr_model.eval()
-
-
-# ------------------------------------------------------------
-# AI4Bharat IndicTrans2
-# Indian Language -> English
-# ------------------------------------------------------------
-
-translator_model_name = (
-    "ai4bharat/indictrans2-indic-en-dist-200M"
-)
-
-translator_tokenizer = AutoTokenizer.from_pretrained(
-    translator_model_name,
-    trust_remote_code=True,
-    token=HF_TOKEN,
-)
-
-translator_model = AutoModelForSeq2SeqLM.from_pretrained(
-    translator_model_name,
-    trust_remote_code=True,
-    torch_dtype=(
-        torch.float16
-        if DEVICE == "cuda"
-        else torch.float32
-    ),
-    token=HF_TOKEN,
-).to(DEVICE)
-
-translator_model.eval()
-
-
-# ------------------------------------------------------------
-# IndicTrans2 Processor
-# ------------------------------------------------------------
-
-ip = IndicProcessor(inference=True)
-
-print("Models loaded successfully.")
-print("Using device:", DEVICE)
+    print("Warning: HF_TOKEN is not set.")
 
 
 # ============================================================
 # LANGUAGE MAPS
 # ============================================================
 
-# IMPORTANT:
-# These are the language codes expected by IndicConformer.
-
+# IndicConformer language codes
 ASR_LANGUAGE_MAP = {
     "hi": "hi",       # Hindi
     "bn": "bn",       # Bengali
@@ -122,9 +65,7 @@ ASR_LANGUAGE_MAP = {
 }
 
 
-# IMPORTANT:
-# These are the language codes expected by IndicTrans2.
-
+# IndicTrans2 language codes
 TRANSLATION_LANGUAGE_MAP = {
     "hi": "hin_Deva",     # Hindi
     "bn": "ben_Beng",     # Bengali
@@ -143,10 +84,122 @@ TRANSLATION_LANGUAGE_MAP = {
 
 
 # ============================================================
+# LOAD MODELS
+# ============================================================
+
+@st.cache_resource(show_spinner="Loading speech models...")
+def load_models():
+
+    print("========================================")
+    print("Loading models...")
+    print("Device:", DEVICE)
+    print("========================================")
+
+    # --------------------------------------------------------
+    # 1. WHISPER TINY
+    #
+    # Used for:
+    # - language detection
+    # - English transcription
+    # --------------------------------------------------------
+
+    print("[1/4] Loading Whisper tiny...")
+
+    language_detector = whisper.load_model(
+        "tiny",
+        device=DEVICE,
+    )
+
+    print("[1/4] Whisper loaded.")
+
+    # --------------------------------------------------------
+    # 2. AI4BHARAT INDIC CONFORMER
+    #
+    # Speech -> Original Indian language text
+    # --------------------------------------------------------
+
+    print("[2/4] Loading IndicConformer 600M...")
+
+    asr_model = AutoModel.from_pretrained(
+        "ai4bharat/indic-conformer-600m-multilingual",
+        trust_remote_code=True,
+        token=HF_TOKEN,
+    )
+
+    asr_model = asr_model.to(DEVICE)
+    asr_model.eval()
+
+    print("[2/4] IndicConformer loaded.")
+
+    # --------------------------------------------------------
+    # 3. AI4BHARAT INDICTRANS2
+    #
+    # Indian language -> English
+    # --------------------------------------------------------
+
+    print("[3/4] Loading IndicTrans2...")
+
+    translator_model_name = (
+        "ai4bharat/indictrans2-indic-en-dist-200M"
+    )
+
+    translator_tokenizer = AutoTokenizer.from_pretrained(
+        translator_model_name,
+        trust_remote_code=True,
+        token=HF_TOKEN,
+    )
+
+    translator_model = AutoModelForSeq2SeqLM.from_pretrained(
+        translator_model_name,
+        trust_remote_code=True,
+        torch_dtype=(
+            torch.float16
+            if DEVICE == "cuda"
+            else torch.float32
+        ),
+        token=HF_TOKEN,
+    )
+
+    translator_model = translator_model.to(DEVICE)
+    translator_model.eval()
+
+    print("[3/4] IndicTrans2 loaded.")
+
+    # --------------------------------------------------------
+    # 4. INDIC PROCESSOR
+    # --------------------------------------------------------
+
+    print("[4/4] Loading IndicProcessor...")
+
+    ip = IndicProcessor(inference=True)
+
+    print("[4/4] IndicProcessor loaded.")
+
+    print("========================================")
+    print("All models loaded successfully.")
+    print("Using device:", DEVICE)
+    print("========================================")
+
+    return (
+        language_detector,
+        asr_model,
+        translator_tokenizer,
+        translator_model,
+        ip,
+    )
+
+
+# ============================================================
 # TRANSLATION HELPER
 # ============================================================
 
-def translate_to_english(text, src_lang):
+def translate_to_english(
+    text,
+    src_lang,
+    translator_tokenizer,
+    translator_model,
+    ip,
+):
     """
     Translate an Indian-language sentence to English
     using IndicTrans2.
@@ -178,7 +231,10 @@ def translate_to_english(text, src_lang):
         return_tensors="pt",
     )
 
+    # --------------------------------------------------------
     # Move tensors to model device
+    # --------------------------------------------------------
+
     inputs = {
         key: value.to(DEVICE)
         for key, value in inputs.items()
@@ -225,25 +281,39 @@ def translate_to_english(text, src_lang):
 
 def speech_to_english(audio_path):
     """
-    Complete pipeline:
+    Complete speech pipeline.
 
-        Audio
-          ↓
-        Whisper language detection
-          ↓
-        IndicConformer for Indian languages
-          ↓
-        IndicTrans2
-          ↓
-        English
-
-    For English:
-        Audio
-          ↓
-        Whisper transcription
-          ↓
-        English
+    Audio
+       |
+       v
+    Whisper language detection
+       |
+       +------ English ------> Whisper transcription
+       |
+       +------ Indian -------> IndicConformer
+                                  |
+                                  v
+                              IndicTrans2
+                                  |
+                                  v
+                               English
     """
+
+    # --------------------------------------------------------
+    # Load cached models
+    #
+    # IMPORTANT:
+    # This happens only when speech_to_english() is actually
+    # called, not when app.py imports this module.
+    # --------------------------------------------------------
+
+    (
+        language_detector,
+        asr_model,
+        translator_tokenizer,
+        translator_model,
+        ip,
+    ) = load_models()
 
     # ========================================================
     # 1. DETECT LANGUAGE
@@ -259,13 +329,9 @@ def speech_to_english(audio_path):
 
     print("Detected language:", detected_language)
 
-
     # ========================================================
     # 2. ENGLISH
     # ========================================================
-
-    # If Whisper detects English, there is absolutely no
-    # reason to run IndicConformer or IndicTrans2.
 
     if detected_language == "en":
 
@@ -280,7 +346,6 @@ def speech_to_english(audio_path):
             "english_text": transcript,
         }
 
-
     # ========================================================
     # 3. CHECK SUPPORTED INDIAN LANGUAGE
     # ========================================================
@@ -291,12 +356,13 @@ def speech_to_english(audio_path):
             f"Language '{detected_language}' is not supported."
         )
 
-
     # ========================================================
     # 4. LOAD AUDIO
     # ========================================================
 
-    wav, sample_rate = torchaudio.load(audio_path)
+    wav, sample_rate = torchaudio.load(
+        audio_path
+    )
 
     # --------------------------------------------------------
     # Stereo -> Mono
@@ -323,41 +389,22 @@ def speech_to_english(audio_path):
         )
 
     # --------------------------------------------------------
-    # IMPORTANT
+    # Keep shape:
     #
-    # Keep the tensor as:
-    #
-    #       [1, samples]
-    #
-    # Do NOT use:
-    #
-    #       wav.squeeze(0)
-    #
-    # because that produces:
-    #
-    #       [samples]
-    #
-    # which caused your previous NeMo/TorchScript
-    # "Dimension out of range" error.
+    # [1, samples]
     # --------------------------------------------------------
 
     wav = wav.float()
 
+    # --------------------------------------------------------
     # Move audio to same device as ASR model
-    wav = wav.to(DEVICE)
+    # --------------------------------------------------------
 
+    wav = wav.to(DEVICE)
 
     # ========================================================
     # 5. INDICCONFORMER
     # ========================================================
-
-    # IndicConformer uses short language codes:
-    #
-    # hi
-    # ur
-    # bn
-    # ta
-    # etc.
 
     asr_language = ASR_LANGUAGE_MAP[
         detected_language
@@ -371,7 +418,10 @@ def speech_to_english(audio_path):
             "ctc",
         )
 
+    # --------------------------------------------------------
     # Make sure result is a string
+    # --------------------------------------------------------
+
     if isinstance(transcript, (list, tuple)):
 
         transcript = transcript[0]
@@ -380,17 +430,9 @@ def speech_to_english(audio_path):
 
     print("Original text:", transcript)
 
-
     # ========================================================
     # 6. INDICTRANS2
     # ========================================================
-
-    # IndicTrans2 uses DIFFERENT language codes:
-    #
-    # hi  -> hin_Deva
-    # ur  -> urd_Arab
-    # bn  -> ben_Beng
-    # etc.
 
     translation_language = TRANSLATION_LANGUAGE_MAP[
         detected_language
@@ -399,10 +441,12 @@ def speech_to_english(audio_path):
     english_text = translate_to_english(
         transcript,
         translation_language,
+        translator_tokenizer,
+        translator_model,
+        ip,
     )
 
     print("English translation:", english_text)
-
 
     # ========================================================
     # 7. RETURN
@@ -410,13 +454,13 @@ def speech_to_english(audio_path):
 
     return {
         "language": detected_language,
-        "original_text": repr(transcript),
+        "original_text": transcript,
         "english_text": english_text,
     }
 
 
 # ============================================================
-# OPTIONAL TEST
+# OPTIONAL LOCAL TEST
 # ============================================================
 
 if __name__ == "__main__":
@@ -449,14 +493,17 @@ if __name__ == "__main__":
             print("==========================")
             print("RESULT")
             print("==========================")
+
             print(
                 "Language:",
                 result["language"],
             )
+
             print(
                 "Original:",
                 result["original_text"],
             )
+
             print(
                 "English:",
                 result["english_text"],
