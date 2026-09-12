@@ -46,7 +46,7 @@ The overall architecture follows:
 └──────────┬──────────┘
            │
            ▼
-     English Text
+     Language in same Text
            │
            ▼
 ┌─────────────────────┐

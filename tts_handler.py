@@ -151,7 +151,7 @@ async def text_to_speech(
 
         request = {
             "text": text,
-            "language": language
+            "lang": language
         }
 
         await ws.send(

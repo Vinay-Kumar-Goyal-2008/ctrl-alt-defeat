@@ -16,7 +16,7 @@ print("5")
 import soundfile as sf
 print("6")
 
-from sst import speech_to_english
+from sst import  speech_to_english
 print("7")
 
 from graph import build_graph

@@ -1,4 +1,5 @@
-INTENT_PROMPT = """
+language_pr=""" Always give response in the same language as the user has said in this whole prompt dont give answer in any other language"""
+INTENT_PROMPT = language_pr+"""
 You are an intent and sales-interest classification system.
 
 Analyze the user's latest message in the context of the conversation.
@@ -41,7 +42,7 @@ Do not invent information.
 """
 
 
-BASE_DIALOGUE_PROMPT = """
+BASE_DIALOGUE_PROMPT = language_pr+"""
 You are a professional conversational sales assistant.
 
 Product:
@@ -104,7 +105,7 @@ If appropriate, ask one useful follow-up question.
 """
 
 
-HOT_WHATSAPP_PROMPT = """
+HOT_WHATSAPP_PROMPT = language_pr+ """
 Create a WhatsApp message for a highly interested potential customer.
 
 Product:
@@ -128,7 +129,7 @@ Do not claim anything not present in the product information.
 """
 
 
-SCHEDULE_WHATSAPP_PROMPT = """
+SCHEDULE_WHATSAPP_PROMPT = language_pr+"""
 Create a concise WhatsApp confirmation message.
 
 User requested a future call.
@@ -151,7 +152,7 @@ Do not mention AI or internal systems.
 """
 
 
-SUMMARY_PROMPT = """
+SUMMARY_PROMPT = language_pr+"""
 You are a post-call analysis agent.
 
 Analyze the complete conversation below.

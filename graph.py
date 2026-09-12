@@ -16,7 +16,8 @@ from prompts import (
     NORMAL_DIALOGUE_PROMPT,
     HOT_WHATSAPP_PROMPT,
     SCHEDULE_WHATSAPP_PROMPT,
-    SUMMARY_PROMPT
+    SUMMARY_PROMPT,
+    language_pr
 )
 
 from tools import send_whatsapp_message
@@ -276,7 +277,7 @@ def compare_responses(
     prompt = ChatPromptTemplate.from_messages([
         (
             "system",
-            """
+            language_pr+"""
 You are the final conversation-response judge.
 
 You have two candidate responses generated for the

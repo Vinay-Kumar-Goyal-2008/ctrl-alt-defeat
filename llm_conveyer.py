@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from productknowledge import business
 import streamlit as st
+from prompts import language_pr
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 # ============================================================
 # RESPONSE SCHEMA
@@ -32,7 +33,7 @@ def create_marketing_agent():
         MarketingResponse
     )
 
-    system_prompt = """
+    system_prompt = language_pr+"""
 You are an expert marketing strategist working for a specific business.
 
 You have deep knowledge of the business provided below.
